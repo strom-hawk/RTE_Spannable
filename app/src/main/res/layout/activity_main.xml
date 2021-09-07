@@ -42,17 +42,15 @@
         android:layout_height="40dp"
         android:layout_marginStart="5dp"
         android:layout_toEndOf="@id/strikeThroughButton"
-        android:text="SUP"
-        android:visibility="invisible"/>
+        android:text="SUP" />
 
     <Button
         android:id="@+id/subScriptButton"
         android:layout_width="70dp"
         android:layout_height="40dp"
-        android:text="SUB"
-        android:layout_toEndOf="@id/superButton"
         android:layout_marginStart="5dp"
-        android:visibility="invisible"/>
+        android:layout_toEndOf="@id/superButton"
+        android:text="SUB" />
 
     <Button
         android:id="@+id/imageButton"

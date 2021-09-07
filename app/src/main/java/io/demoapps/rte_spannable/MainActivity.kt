@@ -2,18 +2,15 @@ package io.demoapps.rte_spannable
 
 import android.graphics.Typeface
 import android.graphics.drawable.Drawable
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.text.*
 import android.text.style.*
 import android.widget.Button
 import android.widget.EditText
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 
 class MainActivity : AppCompatActivity() {
-    private val SUBSCRIPT_SUPERSCRIPT_ENABLED = 1
-    private val SUBSCRIPT_SUPERSCRIPT_DISABLED = -1
-
     private lateinit var customEditText: EditText
     private lateinit var boldButton: Button
     private lateinit var italicButton: Button
@@ -29,17 +26,15 @@ class MainActivity : AppCompatActivity() {
     private var isUnderLine = false
     private var isStrikeThrough = false
     private var isSuperScriptEnabled = false
-    private var isSuperScriptSet = false
-    private var isSubScript = SUBSCRIPT_SUPERSCRIPT_DISABLED
+    private var isSubScriptEnabled = false
     private var isImageInserted = false
 
-    private var currentTypeFace = 0
-    private var selectionStart = 0
     private var boldSelectionStart = ArrayList<Int>()
     private var italicSelectionStart = ArrayList<Int>()
     private var underLineSelectionStart = ArrayList<Int>()
     private var strikeThroughSelectionStart = ArrayList<Int>()
     private var superScriptSelectionStart = 0
+    private var subScriptSelectionStart = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -50,7 +45,7 @@ class MainActivity : AppCompatActivity() {
         addTextWatcher()
     }
 
-    private fun initViews(){
+    private fun initViews() {
         customEditText = findViewById(R.id.customEditText)
         boldButton = findViewById(R.id.boldButton)
         italicButton = findViewById(R.id.italicButton)
@@ -61,7 +56,7 @@ class MainActivity : AppCompatActivity() {
         imageButton = findViewById(R.id.imageButton)
     }
 
-    private fun bindViews(){
+    private fun bindViews() {
         boldButton.setOnClickListener {
             boldButtonClicked()
         }
@@ -79,20 +74,11 @@ class MainActivity : AppCompatActivity() {
         }
 
         superButton.setOnClickListener {
-            isSuperScriptEnabled = !isSuperScriptEnabled
-            if(isSuperScriptEnabled){
-                isSuperScriptSet = false
-            }
-            superScriptSelectionStart = customEditText.selectionStart
+            superScriptButtonClicked()
         }
 
         subScriptButton.setOnClickListener {
-            if(isSubScript == SUBSCRIPT_SUPERSCRIPT_ENABLED){
-                isSubScript = SUBSCRIPT_SUPERSCRIPT_DISABLED
-            }else{
-                isSubScript = SUBSCRIPT_SUPERSCRIPT_ENABLED
-            }
-            selectionStart = customEditText.selectionStart
+            subScriptButtonClicked()
         }
 
         imageButton.setOnClickListener {
@@ -100,7 +86,73 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun addTextWatcher(){
+    private fun boldButtonClicked() {
+        isBold = !isBold
+        if (isBold) {
+            boldButton.setTextColor(getColor(R.color.teal_200))
+            boldSelectionStart.add(customEditText.selectionStart)
+        } else {
+            boldButton.setTextColor(getColor(R.color.white))
+            boldSelectionStart.removeAt(boldSelectionStart.size - 1)
+        }
+    }
+
+    private fun italicButtonClicked() {
+        isItalic = !isItalic
+        if (isItalic) {
+            italicButton.setTextColor(getColor(R.color.teal_200))
+            italicSelectionStart.add(customEditText.selectionStart)
+        } else {
+            italicButton.setTextColor(getColor(R.color.white))
+            italicSelectionStart.removeAt(italicSelectionStart.size - 1)
+        }
+    }
+
+    private fun underLineButtonClicked() {
+        isUnderLine = !isUnderLine
+        if (isUnderLine) {
+            underlineButton.setTextColor(getColor(R.color.teal_200))
+            underLineSelectionStart.add(customEditText.selectionStart)
+        } else {
+            underlineButton.setTextColor(getColor(R.color.white))
+            underLineSelectionStart.removeAt(underLineSelectionStart.size - 1)
+        }
+    }
+
+    private fun strikeThroughButtonClicked() {
+        isStrikeThrough = !isStrikeThrough
+        if (isStrikeThrough) {
+            strikeThroughButton.setTextColor(getColor(R.color.teal_200))
+            strikeThroughSelectionStart.add(customEditText.selectionStart)
+        } else {
+            strikeThroughButton.setTextColor(getColor(R.color.white))
+            strikeThroughSelectionStart.removeAt(strikeThroughSelectionStart.size - 1)
+        }
+    }
+
+    private fun superScriptButtonClicked() {
+        isSuperScriptEnabled = !isSuperScriptEnabled
+        if (isSuperScriptEnabled) {
+            superButton.setTextColor(getColor(R.color.teal_200))
+            superScriptSelectionStart = customEditText.selectionStart
+        } else {
+            superButton.setTextColor(getColor(R.color.white))
+            superScriptSelectionStart = -1
+        }
+    }
+
+    private fun subScriptButtonClicked() {
+        isSubScriptEnabled = !isSubScriptEnabled
+        if (isSubScriptEnabled) {
+            subScriptButton.setTextColor(getColor(R.color.teal_200))
+            subScriptSelectionStart = customEditText.selectionStart
+        } else {
+            subScriptButton.setTextColor(getColor(R.color.white))
+            subScriptSelectionStart = -1
+        }
+    }
+
+    private fun addTextWatcher() {
         customEditText.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
 
@@ -111,36 +163,25 @@ class MainActivity : AppCompatActivity() {
                 val str: Spannable = customEditText.text
                 val endLength = s.toString().length
                 val normalSpan = StyleSpan(Typeface.NORMAL)
-                val superScriptSpan = SuperscriptSpan()
-                val subScriptSpan = SubscriptSpan()
 
-                /*if(isNormal){
-                    str.setSpan(normalSpan, selectionStart, endLength, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
-                }*/
 
-                if(!isImageInserted){
+                if (!isImageInserted) {
                     checkAndSetBold(str, endLength, before)
                     checkAndSetItalic(str, endLength, before)
                     checkAndSetUnderLine(str, endLength, before)
                     checkAndSetStrikeThrough(str, endLength, before)
+                    checkAndSetSuperScript(str, endLength)
+                    checkAndSetSubScript(str, endLength)
                 }
-
-/*                if(isSuperScriptEnabled){
-                    str.setSpan(superScriptSpan, superScriptSelectionStart, endLength, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
-                    isSuperScriptSet = true
-                }else if(!isSuperScriptEnabled){
-                    str.removeSpan(superScriptSpan)
-                }*/
             }
 
             override fun afterTextChanged(s: Editable?) {
                 isImageInserted = false
-                println("--------${isImageInserted}")
             }
         })
     }
 
-    private fun insertImageToEditText(){
+    private fun insertImageToEditText() {
         isImageInserted = true
         val editable = customEditText.editableText
         val startSelection = customEditText.selectionStart
@@ -169,8 +210,8 @@ class MainActivity : AppCompatActivity() {
         val boldSpan = StyleSpan(Typeface.BOLD)
         if (isBold) {
 
-            if(endLength < boldSelectionStart[boldSelectionStart.size-1]){
-                boldSelectionStart.removeAt(boldSelectionStart.size-1)
+            if (endLength < boldSelectionStart[boldSelectionStart.size - 1]) {
+                boldSelectionStart.removeAt(boldSelectionStart.size - 1)
                 boldSelectionStart.add(endLength)
             }
             val topBoldIndexInList = boldSelectionStart[boldSelectionStart.size - 1]
@@ -186,22 +227,22 @@ class MainActivity : AppCompatActivity() {
                 } else {
                     boldSelectionStart.removeAt(boldSelectionStart.size - 1)
                 }
-            }else{
+            } else {
                 str.removeSpan(boldSpan)
-                if(boldSelectionStart.isNotEmpty()){
+                if (boldSelectionStart.isNotEmpty()) {
                     boldSelectionStart.removeAt(boldSelectionStart.size - 1)
                 }
             }
         }
     }
 
-    private fun checkAndSetItalic(str: Spannable, endLength: Int, before: Int){
+    private fun checkAndSetItalic(str: Spannable, endLength: Int, before: Int) {
 
         val italicSpan = StyleSpan(Typeface.ITALIC)
         if (isItalic) {
 
-            if(endLength < italicSelectionStart[italicSelectionStart.size-1]){
-                italicSelectionStart.removeAt(italicSelectionStart.size-1)
+            if (endLength < italicSelectionStart[italicSelectionStart.size - 1]) {
+                italicSelectionStart.removeAt(italicSelectionStart.size - 1)
                 italicSelectionStart.add(endLength)
             }
             val topBoldIndexInList = italicSelectionStart[italicSelectionStart.size - 1]
@@ -217,21 +258,21 @@ class MainActivity : AppCompatActivity() {
                 } else {
                     italicSelectionStart.removeAt(italicSelectionStart.size - 1)
                 }
-            }else{
+            } else {
                 str.removeSpan(italicSpan)
-                if(italicSelectionStart.isNotEmpty()){
+                if (italicSelectionStart.isNotEmpty()) {
                     italicSelectionStart.removeAt(italicSelectionStart.size - 1)
                 }
             }
         }
     }
 
-    private fun checkAndSetUnderLine(str: Spannable, endLength: Int, before: Int){
+    private fun checkAndSetUnderLine(str: Spannable, endLength: Int, before: Int) {
         val underLineSpan = UnderlineSpan()
         if (isUnderLine) {
 
-            if(endLength < underLineSelectionStart[underLineSelectionStart.size-1]){
-                underLineSelectionStart.removeAt(underLineSelectionStart.size-1)
+            if (endLength < underLineSelectionStart[underLineSelectionStart.size - 1]) {
+                underLineSelectionStart.removeAt(underLineSelectionStart.size - 1)
                 underLineSelectionStart.add(endLength)
             }
             val topBoldIndexInList = underLineSelectionStart[underLineSelectionStart.size - 1]
@@ -247,21 +288,21 @@ class MainActivity : AppCompatActivity() {
                 } else {
                     underLineSelectionStart.removeAt(underLineSelectionStart.size - 1)
                 }
-            }else{
+            } else {
                 str.removeSpan(underLineSpan)
-                if(underLineSelectionStart.isNotEmpty()){
+                if (underLineSelectionStart.isNotEmpty()) {
                     underLineSelectionStart.removeAt(underLineSelectionStart.size - 1)
                 }
             }
         }
     }
 
-    private fun checkAndSetStrikeThrough(str: Spannable, endLength: Int, before: Int){
+    private fun checkAndSetStrikeThrough(str: Spannable, endLength: Int, before: Int) {
         val strikeThroughSpan = StrikethroughSpan()
         if (isStrikeThrough) {
 
-            if(endLength < strikeThroughSelectionStart[strikeThroughSelectionStart.size-1]){
-                strikeThroughSelectionStart.removeAt(strikeThroughSelectionStart.size-1)
+            if (endLength < strikeThroughSelectionStart[strikeThroughSelectionStart.size - 1]) {
+                strikeThroughSelectionStart.removeAt(strikeThroughSelectionStart.size - 1)
                 strikeThroughSelectionStart.add(endLength)
             }
             val topBoldIndexInList = strikeThroughSelectionStart[strikeThroughSelectionStart.size - 1]
@@ -277,56 +318,38 @@ class MainActivity : AppCompatActivity() {
                 } else {
                     strikeThroughSelectionStart.removeAt(strikeThroughSelectionStart.size - 1)
                 }
-            }else{
+            } else {
                 str.removeSpan(strikeThroughSpan)
-                if(strikeThroughSelectionStart.isNotEmpty()){
+                if (strikeThroughSelectionStart.isNotEmpty()) {
                     strikeThroughSelectionStart.removeAt(strikeThroughSelectionStart.size - 1)
                 }
             }
         }
     }
 
-    private fun boldButtonClicked(){
-        isBold = !isBold
-        if(isBold){
-            boldButton.setTextColor(getColor(R.color.teal_200))
-            boldSelectionStart.add(customEditText.selectionStart)
-        }else{
-            boldButton.setTextColor(getColor(R.color.white))
-            boldSelectionStart.removeAt(boldSelectionStart.size-1)
+    private fun checkAndSetSuperScript(str: Spannable, endLength: Int) {
+        val superScriptSpan = SuperscriptSpan()
+        if (isSuperScriptEnabled && superScriptSelectionStart != -1) {
+            if (superScriptSelectionStart <= endLength) {
+                str.setSpan(superScriptSpan, superScriptSelectionStart, endLength, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
+            }
+            superScriptSelectionStart = endLength
+
+        } else if (!isSuperScriptEnabled) {
+            str.removeSpan(superScriptSpan)
         }
     }
 
-    private fun italicButtonClicked(){
-        isItalic = !isItalic
-        if(isItalic){
-            italicButton.setTextColor(getColor(R.color.teal_200))
-            italicSelectionStart.add(customEditText.selectionStart)
-        }else{
-            italicButton.setTextColor(getColor(R.color.white))
-            italicSelectionStart.removeAt(italicSelectionStart.size-1)
+    private fun checkAndSetSubScript(str: Spannable, endLength: Int) {
+        val subScriptSpan = SubscriptSpan()
+        if (isSubScriptEnabled && subScriptSelectionStart != -1) {
+            if (superScriptSelectionStart <= endLength) {
+                str.setSpan(subScriptSpan, subScriptSelectionStart, endLength, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
+            }
+            subScriptSelectionStart = endLength
+        } else if (!isSubScriptEnabled) {
+            str.removeSpan(subScriptSpan)
         }
     }
 
-    private fun underLineButtonClicked(){
-        isUnderLine = !isUnderLine
-        if(isUnderLine){
-            underlineButton.setTextColor(getColor(R.color.teal_200))
-            underLineSelectionStart.add(customEditText.selectionStart)
-        }else{
-            underlineButton.setTextColor(getColor(R.color.white))
-            underLineSelectionStart.removeAt(underLineSelectionStart.size-1)
-        }
-    }
-
-    private fun strikeThroughButtonClicked(){
-        isStrikeThrough = !isStrikeThrough
-        if(isStrikeThrough){
-            strikeThroughButton.setTextColor(getColor(R.color.teal_200))
-            strikeThroughSelectionStart.add(customEditText.selectionStart)
-        }else{
-            strikeThroughButton.setTextColor(getColor(R.color.white))
-            strikeThroughSelectionStart.removeAt(strikeThroughSelectionStart.size-1)
-        }
-    }
 }
