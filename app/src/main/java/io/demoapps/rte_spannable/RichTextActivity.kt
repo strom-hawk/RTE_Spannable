@@ -1,6 +1,5 @@
 package io.demoapps.rte_spannable
 
-import android.content.Intent
 import android.graphics.Typeface
 import android.graphics.drawable.Drawable
 import android.os.Bundle
@@ -11,7 +10,7 @@ import android.widget.EditText
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 
-class MainActivity : AppCompatActivity() {
+class RichTextActivity : AppCompatActivity() {
     private lateinit var customEditText: EditText
     private lateinit var boldButton: Button
     private lateinit var italicButton: Button
@@ -20,7 +19,6 @@ class MainActivity : AppCompatActivity() {
     private lateinit var superButton: Button
     private lateinit var subScriptButton: Button
     private lateinit var imageButton: Button
-    private lateinit var newActivity: Button
 
     private var isNormal = true
     private var isBold = false
@@ -37,6 +35,11 @@ class MainActivity : AppCompatActivity() {
     private var strikeThroughSelectionStart = ArrayList<Int>()
     private var superScriptSelectionStart = ArrayList<Int>()
     private var subScriptSelectionStart = ArrayList<Int>()
+
+    private lateinit var spanHandler: SpanHandler
+    private var startIndex = -1
+    private var endIndex = 0
+    private var beforeCount = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -56,14 +59,11 @@ class MainActivity : AppCompatActivity() {
         superButton = findViewById(R.id.superButton)
         subScriptButton = findViewById(R.id.subScriptButton)
         imageButton = findViewById(R.id.imageButton)
-        newActivity = findViewById(R.id.newActivity)
+
+        spanHandler = SpanHandler(this)
     }
 
     private fun bindViews() {
-        newActivity.setOnClickListener {
-            callNewActivity()
-        }
-
         boldButton.setOnClickListener {
             boldButtonClicked()
         }
@@ -103,6 +103,21 @@ class MainActivity : AppCompatActivity() {
             boldSelectionStart.removeAt(boldSelectionStart.size - 1)
             addSpaceAndMoveCursorToEnd()
         }
+
+        //println("------${customEditText.selectionStart}")
+
+        var existingSpanStart = -1
+        if (boldSelectionStart.isNotEmpty()) {
+            existingSpanStart = boldSelectionStart[0]
+        }
+
+        spanHandler.applyStyle(
+            customEditText.getEditableText(),
+            customEditText.selectionStart,
+            customEditText.selectionEnd,
+            isBold,
+            existingSpanStart
+        )
     }
 
     private fun italicButtonClicked() {
@@ -148,7 +163,7 @@ class MainActivity : AppCompatActivity() {
             superScriptSelectionStart.add(customEditText.selectionStart)
         } else {
             superButton.setTextColor(getColor(R.color.white))
-            superScriptSelectionStart.removeAt(superScriptSelectionStart.size-1)
+            superScriptSelectionStart.removeAt(superScriptSelectionStart.size - 1)
             addSpaceAndMoveCursorToEnd()
         }
     }
@@ -160,7 +175,7 @@ class MainActivity : AppCompatActivity() {
             subScriptSelectionStart.add(customEditText.selectionStart)
         } else {
             subScriptButton.setTextColor(getColor(R.color.white))
-            subScriptSelectionStart.removeAt(subScriptSelectionStart.size-1)
+            subScriptSelectionStart.removeAt(subScriptSelectionStart.size - 1)
             addSpaceAndMoveCursorToEnd()
         }
     }
@@ -170,25 +185,39 @@ class MainActivity : AppCompatActivity() {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
 
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-                println("----count: ${count}")
-                println("----before: ${before}")
-                println("----length: ${s.toString().length}")
+                //println("----start: ${start}")
+                //println("----before: ${s?.length}")
+                //println("----count: ${customEditText.selectionEnd}")
+                //println("----length: ${s.toString().length}")
                 val str: Spannable = customEditText.text
                 val endLength = s.toString().length
                 val normalSpan = StyleSpan(Typeface.NORMAL)
 
 
                 if (!isImageInserted) {
-                    checkAndSetBold(str, endLength, before)
+                    /*checkAndSetBold(str, endLength, before)
                     checkAndSetItalic(str, endLength, before)
                     checkAndSetUnderLine(str, endLength, before)
                     checkAndSetStrikeThrough(str, endLength, before)
                     checkAndSetSuperScript(str, endLength, before)
-                    checkAndSetSubScript(str, endLength, before)
+                    checkAndSetSubScript(str, endLength, before)*/
                 }
+
+                /*startIndex = start
+                endIndex = start+count*/
+                manipulateData(s?.length!!)
+                println("----start" + startIndex)
+                println("----end" + (startIndex + endIndex))
+
             }
 
             override fun afterTextChanged(s: Editable?) {
+                var existingSpanStart = -1
+                if (boldSelectionStart.isNotEmpty()) {
+                    existingSpanStart = boldSelectionStart[0]
+                }
+
+                spanHandler.applyStyle(s, startIndex, startIndex + endIndex, isBold, existingSpanStart)
                 isImageInserted = false
             }
         })
@@ -399,18 +428,27 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun addSpaceAndMoveCursorToEnd(){
-        val customEditTextStr = customEditText.text.toString()
+    private fun addSpaceAndMoveCursorToEnd() {
+        /*val customEditTextStr = customEditText.text.toString()
         val strLength = customEditTextStr.length
         if(customEditText.length() > 0 && customEditTextStr[strLength-1] != ' '){
             customEditText.setText(customEditText.text.append(" "))
             customEditText.setSelection(customEditText.length())
-        }
+        }*/
     }
 
-    private fun callNewActivity(){
-        val intent = Intent(this, RichTextActivity::class.java)
-        startActivity(intent)
+    private fun manipulateData(strLength: Int) {
+        if (strLength > beforeCount) {
+            startIndex += 1
+            endIndex = 1
+        } else {
+            if (endIndex == 1) {
+                endIndex -= 1
+            } else {
+                startIndex -= 1
+            }
+        }
+        beforeCount = strLength
     }
 
 }

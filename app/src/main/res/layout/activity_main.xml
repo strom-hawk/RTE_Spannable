@@ -64,11 +64,20 @@
         android:id="@+id/customEditText"
         android:layout_width="match_parent"
         android:layout_height="300dp"
-        android:background="@color/white"
-        android:textColor="@color/black"
-        android:hint="Text"
         android:layout_below="@id/imageButton"
         android:layout_marginTop="10dp"
-        android:gravity="left|top"/>
+        android:background="@color/white"
+        android:gravity="left|top"
+        android:hint="Text"
+        android:textColor="@color/black" />
+
+    <Button
+        android:id="@+id/newActivity"
+        android:layout_width="wrap_content"
+        android:layout_height="40dp"
+        android:text="New Activity"
+        android:layout_marginStart="5dp"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"/>
 
 </RelativeLayout>
